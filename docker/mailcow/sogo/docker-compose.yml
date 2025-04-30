@@ -1,0 +1,37 @@
+services:
+  sogo:
+    build: .
+    ports:
+      - "82:80"
+    environment:        
+      - DB_HOST=db
+      - DB_USER=sogo
+      - DB_PASS=pass
+      - DB_DATABASE=sogo
+      - DB_USERPROFILES=mysql://sogo:pass@db:3306/sogo/sogo_user_profile
+      - DB_FOLDERINFO=mysql://sogo:pass@db:3306/sogo/sogo_folder_info
+      - DB_SESSIONSFOLDER=mysql://sogo:pass@db:3306/sogo/sogo_sessions_folder
+      - DB_USERVIEW=mysql://sogo:pass@db:3306/sogo/sogo_view
+      - IMAP_SERVER=imaps://mail.lxhome:993
+      - SMTP_SERVER=mail.lxhome
+      - MAILDOMAIN=mail.lxhome
+      - TITLE=My Amazing SOGo Instance
+      - LANGUAGE=English
+      - TIMEZONE=Europe/Paris
+      - SUPERUSERS=rajarshi@lxhome.fr
+    depends_on:
+      - db
+
+  db:
+    image: mariadb
+    restart: always
+    environment:
+      MYSQL_ROOT_PASSWORD: pass
+      MYSQL_DATABASE: sogo
+      MYSQL_USER: sogo
+      MYSQL_PASSWORD: pass
+    volumes:
+      - db_data:/var/lib/mysql
+
+volumes:
+  db_data:
