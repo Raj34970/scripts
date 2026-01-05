@@ -15,7 +15,7 @@ services:
       KC_HTTP_ENABLED: ${KC_HTTP_ENABLED}
       KC_PROXY: ${KC_PROXY}
     restart: unless-stopped
-    command: start-dev
+    command: start
     depends_on:
       - db
 
