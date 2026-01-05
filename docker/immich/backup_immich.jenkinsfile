@@ -1,0 +1,52 @@
+// for backup and cleanup 
+
+pipeline {
+
+    agent none
+    
+    parameters {
+        booleanParam(name: 'backup_db', defaultValue: true, description: 'Run backup_db')
+        booleanParam(name: 'backup_files', defaultValue: true, description: 'Run backup_files')
+        booleanParam(name: 'send_sftp', defaultValue: true, description: 'Run send_sftp')
+        booleanParam(name: 'remove_immich_backups', defaultValue: true, description: 'Run remove_immich_backups')
+    }
+    
+    stages {
+        stage('DB_backup') {
+            when { expression { return params.backup_db } }
+            agent { label 'immich-home' }
+            steps {
+                wrap([$class: 'AnsiColorBuildWrapper', 'colorMapName': 'gnome-terminal']) {
+                    sh '/home/jenkins/Immich/backup_db_immich.sh'
+                }
+            }
+        }
+        stage('Files_backup') {
+            when { expression { return params.backup_files } }
+            agent { label 'immich-home' }
+            steps {
+                wrap([$class: 'AnsiColorBuildWrapper', 'colorMapName': 'gnome-terminal']) {
+                    sh '/home/jenkins/Immich/backup_file_immich.sh'
+                }
+            }
+        }
+        stage('Sending_to_SFTP') {
+            when { expression { return params.send_sftp } }
+            agent { label 'immich-home' }
+            steps {
+                wrap([$class: 'AnsiColorBuildWrapper', 'colorMapName': 'gnome-terminal']) {
+                    sh '/home/jenkins/Immich/send_sftp_immich.sh'
+                }
+            }
+        }
+        stage('SFTP_cleanup') {
+            when { expression { return params.remove_nextcloud_backups } }
+            agent { label 'SFTP' }
+            steps {
+                wrap([$class: 'AnsiColorBuildWrapper', 'colorMapName': 'gnome-terminal']) {
+                    sh 'sudo /home/jenkins/scripts/remove_immich_backups.sh'
+                }
+            }
+        }
+    }
+}
