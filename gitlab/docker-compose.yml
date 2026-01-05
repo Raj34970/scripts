@@ -1,0 +1,28 @@
+services:
+  gitlab:
+    image: gitlab/gitlab-ce:18.4.6-ce.0
+    container_name: gitlab
+    hostname: gitlab.lxhome.fr
+    restart: unless-stopped
+    shm_size: "1g"
+
+    ports:
+      - "80:80"
+      - "443:443"
+      - "2222:22"
+
+    environment:
+      GITLAB_OMNIBUS_CONFIG: |
+        external_url 'https://gitlab.lxhome.fr'
+        gitlab_rails['gitlab_shell_ssh_port'] = 2222
+        gitlab_rails['time_zone'] = 'Europe/Paris'
+        nginx['redirect_http_to_https'] = true
+        letsencrypt['enable'] = true
+
+    volumes:
+      - ./gitlab/config:/etc/gitlab
+      - ./gitlab/logs:/var/log/gitlab
+      - ./gitlab/data:/var/opt/gitlab
+
+
+# docker exec -it gitlab gitlab-rake "gitlab:password:reset[root]"
