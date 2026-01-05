@@ -1,0 +1,16 @@
+---
+- name: Installing SYS Ops Apps
+  hosts: proxy
+  gather_facts: true
+  tasks:
+    - name: Make sure the path exists
+      ansible.builtin.file:
+        path: "{{ item }}"
+        state: directory
+        mode: '0644'
+      loop:
+        - "/etc/nginx/nginx.conf/"
+        - "/etc/nginx/sites-available/"
+        - "/etc/nginx/sites-enabled/"
+        - "/etc/letsencrypt/"
+        - "/var/log/nginx/"
