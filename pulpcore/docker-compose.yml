@@ -1,0 +1,73 @@
+services:
+  postgres:
+    image: postgres:14
+    environment:
+      POSTGRES_USER: pulp
+      POSTGRES_PASSWORD: pulp
+      POSTGRES_DB: pulp
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U pulp"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+  redis:
+    image: redis:7
+    command: ["redis-server", "--appendonly", "yes"]
+
+  pulp-api:
+    image: quay.io/pulp/pulp-ansible
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_started
+    environment:
+      PULP_DB_USER: pulp
+      PULP_DB_PASSWORD: pulp
+      PULP_DB_NAME: pulp
+      PULP_DB_HOST: postgres
+      PULP_REDIS_HOST: redis
+    ports:
+      - "8080:80"
+    volumes:
+      - pulpdata:/var/lib/pulp
+      - pulpsettings:/etc/pulp
+
+  pulp-content:
+    image: quay.io/pulp/pulp-ansible
+    command: pulp-content
+    depends_on:
+      pulp-api:
+        condition: service_started
+    ports:
+      - "8081:80"
+    volumes:
+      - pulpdata:/var/lib/pulp
+
+  pulp-worker:
+    image: quay.io/pulp/pulp-ansible
+    command: pulp-worker
+    depends_on:
+      pulp-api:
+        condition: service_started
+    volumes:
+      - pulpdata:/var/lib/pulp
+
+  galaxy-ui:
+    image: quay.io/ansible/galaxy_ng_ui:latest
+    depends_on:
+      pulp-api:
+        condition: service_started
+    ports:
+      - "8002:80"
+    environment:
+      API_URL: "http://pulp-api:80"
+      CONTENT_URL: "http://pulp-content:80"
+
+volumes:
+  pgdata:
+  pulpdata:
+  pulpsettings:
