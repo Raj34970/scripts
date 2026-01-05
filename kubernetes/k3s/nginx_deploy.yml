@@ -1,0 +1,51 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: nginx-proxy
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: nginx-proxy
+  template:
+    metadata:
+      labels:
+        app: nginx-proxy
+    spec:
+      nodeSelector:
+        kubernetes.io/hostname: k3s-node
+      containers:
+        - name: nginx
+          image: nginx:mainline
+          ports:
+            - containerPort: 80
+            - containerPort: 443
+          volumeMounts:
+            - name: nginx-conf
+              mountPath: /etc/nginx
+              readOnly: true
+            - name: letsencrypt
+              mountPath: /etc/letsencrypt
+              readOnly: true
+            - name: webroot
+              mountPath: /var/www/html
+              readOnly: true
+            - name: nginx-logs
+              mountPath: /var/log/nginx
+      volumes:
+        - name: nginx-conf
+          hostPath:
+            path: /etc/nginx
+            type: Directory
+        - name: letsencrypt
+          hostPath:
+            path: /etc/letsencrypt
+            type: Directory
+        - name: webroot
+          hostPath:
+            path: /var/www/html
+            type: Directory
+        - name: nginx-logs
+          hostPath:
+            path: /var/log/nginx
+            type: DirectoryOrCreate
