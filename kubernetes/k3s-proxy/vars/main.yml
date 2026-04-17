@@ -1,0 +1,11 @@
+globalDomain: "lxhome.fr"
+clusterIssuer: "letsencrypt-prod"
+
+subdomains:
+  - name: jenkins
+    serviceName: jenkins-service
+    servicePort: 80
+  
+  - name: sonarqube
+    serviceName: sonarqube-service
+    servicePort: 9000

@@ -1,3 +1,4 @@
+#!/bin/bash
 print() {
     local log_level="$1"
     local message="$2"
@@ -34,5 +35,5 @@ error() {
 critical() {
     print CRITICAL "$@"
     print CRITICAL "Exiting with code ${RETURN_CODE}"
-    exit ${RETURN_CODE}
+    exit "${RETURN_CODE}"
 }
