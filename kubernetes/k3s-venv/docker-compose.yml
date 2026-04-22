@@ -1,0 +1,7 @@
+
+services:
+  ansible-builder:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    image: lxhome-ansible-runner:local

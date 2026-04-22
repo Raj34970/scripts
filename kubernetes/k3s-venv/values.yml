@@ -1,0 +1,19 @@
+replicaCount: 2  # Good for high availability
+
+image:
+  repository: your-docker-registry/my-python-app
+  pullPolicy: IfNotPresent
+  tag: "" 
+
+service:
+  type: ClusterIP
+  port: 80
+  targetPort: 5000
+
+resources:
+  limits:
+    cpu: 100m
+    memory: 128Mi
+  requests:
+    cpu: 100m
+    memory: 128Mi
