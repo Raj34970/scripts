@@ -1,0 +1,21 @@
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: ansible-runner-job
+spec:
+  template:
+    spec:
+      containers:
+      - name: runner
+        image: lxhome-ansible-runner:local
+        env:
+        - name: PLAYBOOK_FILE
+          value: "main.yml"
+        volumeMounts:
+        - name: project-data
+          mountPath: /project
+      volumes:
+      - name: project-data
+        configMap:
+          name: ansible-playbook-config # Contains requirements.txt, inventory.ini, and main.yml
+      restartPolicy: Never

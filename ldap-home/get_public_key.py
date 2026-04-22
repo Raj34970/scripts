@@ -13,12 +13,35 @@ def build_user_dn(username):
     return f"uid={username},{BASE_PEOPLE_DN}"
 
 def fetch_attribute(conn, dn, attribute):
-    conn.search(dn, "(objectClass=*)", attributes=[attribute])
+    conn.search(
+        search_base=dn,
+        search_filter="(objectClass=*)",
+        attributes="*"
+    )
+    print (conn, dn, attribute )
     if not conn.entries:
         return []
+
     entry = conn.entries[0]
-    values = entry[attribute].values
-    return values if isinstance(values, list) else [values]
+    raw = entry.entry_raw_attributes
+
+    # Try exact name
+    if attribute in raw:
+        values = raw[attribute]
+    # Try binary transfer option
+    elif f"{attribute};binary" in raw:
+        values = raw[f"{attribute};binary"]
+    else:
+        return []
+
+    decoded = []
+    for v in values:
+        decoded.append(
+            v.decode("utf-8", errors="ignore") if isinstance(v, bytes) else v
+        )
+
+    return decoded
+
 
 def find_allowed_servers(conn, user_dn):
     """Return servers where uniqueMember=user_dn"""

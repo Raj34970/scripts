@@ -1,0 +1,76 @@
+services:
+  netbox:
+    image: netboxcommunity/netbox:latest
+    depends_on:
+      - postgres
+      - redis
+      - redis-cache
+    env_file: .env
+    user: "101:101"
+    environment:
+      - DB_HOST=postgres
+      - DB_USER=netbox
+      - DB_NAME=netbox
+      - DB_PASSWORD=${POSTGRES_PASSWORD}
+      - REDIS_HOST=redis
+      - REDIS_CACHE_HOST=redis-cache
+      - REDIS_PASSWORD=${REDIS_PASSWORD}
+      - API_TOKEN_PEPPERS=["${API_TOKEN_PEPPERS}"]
+    volumes:
+      - ./netbox-media-files:/opt/netbox/netbox/media:z
+      - ./netbox-reports-files:/opt/netbox/netbox/reports:z
+      - ./netbox-scripts-files:/opt/netbox/netbox/scripts:z
+    ports:
+      - "8082:8080"
+
+  worker:
+    image: netboxcommunity/netbox:latest
+    depends_on:
+      - netbox
+    env_file: .env
+    user: "101:101"
+    # Repeat the same overrides here:
+    environment:
+      - DB_HOST=postgres
+      - DB_USER=netbox
+      - DB_NAME=netbox
+      - DB_PASSWORD=${POSTGRES_PASSWORD}
+      - REDIS_HOST=redis
+      - REDIS_CACHE_HOST=redis-cache
+      - REDIS_PASSWORD=${REDIS_PASSWORD}
+      - API_TOKEN_PEPPERS=["${API_TOKEN_PEPPERS}"]
+    command: python3 /opt/netbox/netbox/manage.py rqworker
+    volumes:
+      - ./netbox-media-files:/opt/netbox/netbox/media:z
+      - ./netbox-reports-files:/opt/netbox/netbox/reports:z
+      - ./netbox-scripts-files:/opt/netbox/netbox/scripts:z
+
+  postgres:
+    image: postgres:15-alpine
+    env_file: .env
+    environment:
+      - POSTGRES_DB=netbox
+      - POSTGRES_USER=netbox
+      - POSTGRES_PASSWORD=${POSTGRES_PASSWORD}
+    volumes:
+      - ./netbox-postgres-data:/var/lib/postgresql/data:z
+
+  redis:
+    image: redis:7-alpine
+    command:
+      - sh
+      - -c
+      - redis-server --requirepass $$REDIS_PASSWORD
+    env_file: .env
+    volumes:
+      - ./netbox-redis-data:/data:z
+
+  redis-cache:
+    image: redis:7-alpine
+    command:
+      - sh
+      - -c
+      - redis-server --requirepass $$REDIS_PASSWORD
+    env_file: .env
+    volumes:
+      - ./netbox-redis-cache-data:/data:z
